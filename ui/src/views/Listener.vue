@@ -4,7 +4,7 @@
 		<div v-if="listen_success">
 			<p>Commponent is Listening for connection</p>
 			<p><a :href="connect_url">Connection URL</a></p>
-			<VueQRCodeComponent :text="connect_url" size="300" color="#000000" bg-color="#FFFFFF" />
+			<p><VueQRCodeComponent :text="connect_url" size=300 color="#000000" bg-color="#FFFFFF" /></p>
 		</div>
 		<div v-else>
 			<p>Wait initialization</p>
@@ -38,7 +38,7 @@ export default {
 			return (this.$store.getters.peerkey());
 		},
 		connect_url() {
-			return "http://webpass.kmt.orange.com?channel="+this.$store.getters.channelid()+"&key="+this.$store.getters.publickey();
+			return "https://webpass.kmt.orange.com?channel="+this.$store.getters.channelid()+"&key="+this.$store.getters.publickey();
 		}
 	},
 	mounted() {

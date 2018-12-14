@@ -4,8 +4,12 @@
 		<v-layout row wrap>
 			<v-flex md4><div class="label">Login</div></v-flex>
 			<v-flex md8><div>{{login}}</div></v-flex>
+		</v-layout>
+		<v-layout row wrap>	
 			<v-flex md4><div class="label">Password</div></v-flex>
 			<v-flex md8><div>{{password}}</div></v-flex>
+		</v-layout>
+		<v-layout row wrap>	
 			<v-flex md4><div class="label">Message</div></v-flex>
 			<v-flex md8><div>{{message}}</div></v-flex>
 		</v-layout>
