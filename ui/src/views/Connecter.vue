@@ -1,11 +1,7 @@
 <template>
 	<div>
-		<div>
-			<p>Connected : {{connected}}</p>
-		</div>
 		<ReceivedMessage/>
 		<SendMessage/>
-
 	</div>
 </template>
 

@@ -10,6 +10,7 @@
   "dependencies": {
     "cryptico": "^1.0.2",
     "vue": "^2.5.17",
+    "vue-clipboards": "^1.2.4",
     "vue-native-websocket": "^2.0.12",
     "vue-qrcode-component": "^2.1.1",
     "vue-router": "^3.0.1",

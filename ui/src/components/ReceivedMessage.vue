@@ -3,11 +3,14 @@
 	<v-container  grid-list-xs class="form">
 		<v-layout row wrap>
 			<v-flex xs4><div class="label">Login</div></v-flex>
-			<v-flex xs8><div>{{login}}</div></v-flex>
+			<v-flex xs6><div>{{login}}</div></v-flex>
+			<v-flex xs2><v-btn small color="primary" v-clipboard="login">Copy</v-btn></v-flex>
 			<v-flex xs4><div class="label">Password</div></v-flex>
-			<v-flex xs8><div>{{password}}</div></v-flex>
+			<v-flex xs6><div>{{passwordObfuscated}}</div></v-flex>
+			<v-flex xs2><v-btn small color="primary" v-clipboard="password">Copy</v-btn></v-flex>
 			<v-flex xs4><div class="label">Message</div></v-flex>
-			<v-flex xs8><div>{{message}}</div></v-flex>
+			<v-flex xs6><div>{{message}}</div></v-flex>
+			<v-flex xs2><v-btn small color="primary" v-clipboard="message">Copy</v-btn></v-flex>
 		</v-layout>
 	</v-container>
 	</div>
@@ -26,6 +29,7 @@
 </style>
 <script>
 
+
 export default {
 	components : {
 	},
@@ -41,6 +45,13 @@ export default {
 		},
 		password() {
 			return this.$store.getters.password();
+		},
+		passwordObfuscated() {
+			if (this.$store.getters.password()!="") {
+				return "******************";
+			} else {
+				return "";
+			}
 		},
 		message() {
 			return this.$store.getters.message();
