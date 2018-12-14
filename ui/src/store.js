@@ -136,10 +136,14 @@ export default new Vuex.Store({
 			isConnected: false,
 			message: '',
 			reconnectError: false,
-		}
+		},
+		baseUrl: ''
 	},
 	plugins: [OnMessagePlugin],
 	mutations: {
+		BASE_URL (state, url) {
+			state.baseUrl=url;
+		},
 		ON_MYPROTO_LISTEN_ACK (state, request) {
 			console.log("ON_MYPROTO_LISTEN_ACK STATUS:"+state.connection.status);
 			if (state.connection.status==STATUS.LISTEN) {
@@ -203,7 +207,7 @@ export default new Vuex.Store({
 		SWITCH_TO_CONNECT(state, params) {
 			console.log("SWITCH_TO_CONNECT : "+params.channelid+" key: "+params.key);
 			state.connection.channelid=params.channelid;
-			state.connection.peerkey=params.key.replace(/ /g, "+");
+			state.connection.peerkey=params.key;//.replace(/ /g, "+");
 			var handshake= {
 				channel: state.connection.channelid,
 				key: Cryptico.publicKeyString(state.rsakey)
@@ -285,9 +289,9 @@ export default new Vuex.Store({
 				resolve();
 			})
 		},
-		LISTEN (context, message) {
+		LISTEN (context) {
 			return new Promise((resolve, reject) => {
-				context.commit('LISTEN',message);
+				context.commit('LISTEN');
 				resolve();
 			})
 		}
@@ -319,6 +323,9 @@ export default new Vuex.Store({
 		},
 		message: (state) =>() =>{
 			return (state.info.message);
+		},
+		baseUrl: (state) =>() =>{
+			return (state.baseUrl);
 		}
 	}
 })
