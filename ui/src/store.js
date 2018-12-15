@@ -29,6 +29,17 @@ function sendMessage(ws, state, payload, code) {
 	}
 }
 
+
+function generateChallenge(digit) {
+	var challenge="";
+	for (var i=0; i< digit; i++) {
+		var code=Math.floor((Math.random() * 10));
+		challenge+=code;
+	}
+	return challenge;
+}
+
+
 const OnMessagePlugin = store => {
 	// called when the store is initialized
 	store.subscribe((mutation, state) => {
@@ -253,7 +264,7 @@ export default new Vuex.Store({
 			console.log("ON_MYPROTO_JOIN STATUS:"+state.connection.status);
 			if (state.connection.status==STATUS.LISTEN_SUCCESS) {
 				state.connection.peerkey=request.key;
-				state.join.challenge=Math.floor((Math.random() * 10000) + 1);
+				state.join.challenge=generateChallenge(4);
 				state.connection.status=STATUS.JOIN_RECEIVED;
 			}
 		},
@@ -390,7 +401,7 @@ export default new Vuex.Store({
 			if (state.connection.status==STATUS.NONE) {
 				Vue.prototype.$connect();
 				state.connection.status=STATUS.JOIN;
-				state.join.challenge=Math.floor((Math.random() * 10000) + 1);
+				state.join.challenge=generateChallenge(4);
 			}
 		},
 		JOIN_SUCCESS (state, challenge) {
