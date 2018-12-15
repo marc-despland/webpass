@@ -7,9 +7,10 @@ import VueNativeSock from 'vue-native-websocket'
 import VueClipboards from 'vue-clipboards';
 
 
-const url = "wss://webpass.kmt.orange.com/api/socket"
-var dataws = new WebSocket(url)
-Vue.use(VueNativeSock, url, { store: store, WebSocket: dataws ,reconnection: true, reconnectionAttempts: 10, reconnectionDelay: 1000})
+//const url = "wss://webpass.kmt.orange.com/api/socket"
+const url= "ws://172.17.0.2:8080/api/socket"
+//var dataws = new WebSocket(url) , WebSocket: dataws
+Vue.use(VueNativeSock, url, { store: store, connectManually: true})
 Vue.use(VueClipboards);
 Vue.config.productionTip = false
 

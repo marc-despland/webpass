@@ -1,16 +1,10 @@
 <template>
-	<v-container fluid grid-list-md>
+	<v-container fluid grid-list-xs>
 		<v-layout row wrap >
-			<v-flex d-flex md12><v-text-field v-model="login" label="Login" required></v-text-field></v-flex>
-		</v-layout>
-		<v-layout row wrap >
-			<v-flex d-flex md12><v-text-field v-model="password" label="Password" type="password" required></v-text-field></v-flex>
-		</v-layout>
-		<v-layout row wrap >
-			<v-flex d-flex md12><v-textarea name="message"  v-model="message" label="Message" required></v-textarea></v-flex>
-		</v-layout>
-		<v-layout row wrap >
-			<v-flex d-flex md12><v-btn color="info" @click="send()">Send to peer</v-btn></v-flex>
+			<v-flex d-flex xs12><v-text-field v-model="login" label="Login" required></v-text-field></v-flex>
+			<v-flex d-flex xs12><v-text-field v-model="password" label="Password" type="password" required></v-text-field></v-flex>
+			<v-flex d-flex xs12><v-textarea name="message"  v-model="message" label="Message" required></v-textarea></v-flex>
+			<v-flex d-flex xs12><v-btn color="info" @click="send()">Send to peer</v-btn></v-flex>
 		</v-layout>
 	</v-container>
 </template>

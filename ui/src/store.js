@@ -35,14 +35,22 @@ const OnMessagePlugin = store => {
 			var data=mutation.payload.data;
 			if ((mutation.payload!==undefined) && (mutation.payload.data!==undefined)) {
 				var request=JSON.parse(mutation.payload.data);
-				if ((request!==undefined) && (request.code!==undefined)) {
+				if ((request!==undefined) && (request.hasOwnProperty('code'))) {
 					console.log("Received Message with code "+request.code);
 					switch (request.code) {
 						case "LISTEN_ACK": {
-							if ((request.hasOwnProperty('code')) && (request.hasOwnProperty('channel'))) {
+							if (request.hasOwnProperty('channel')) {
 								store.commit("ON_MYPROTO_LISTEN_ACK", request);
 							} else {
 								console.log("Invalid request LISTEN_ACK : "+JSON.stringify(request));
+							}
+							break;
+						}
+						case "CLOSE": {
+							if (request.hasOwnProperty('channel')) {
+								store.commit("ON_CLOSE", request);
+							} else {
+								console.log("Invalid request CLOSE : "+JSON.stringify(request));
 							}
 							break;
 						}
@@ -50,7 +58,7 @@ const OnMessagePlugin = store => {
 							break;
 						}
 						case "CONNECTED": {
-							if ((request.hasOwnProperty('code')) && (request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
+							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
 								var connect_payload=Cryptico.decrypt(request.payload, state.rsakey);
 								if (connect_payload.status==='success') {
 									request.decoded=JSON.parse(connect_payload.plaintext);
@@ -69,7 +77,7 @@ const OnMessagePlugin = store => {
 						}
 						case "CONNECT": {
 							console.log("CONNECT : "+JSON.stringify(request));
-							if ((request.hasOwnProperty('code')) && (request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
+							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
 								var connected_payload=Cryptico.decrypt(request.payload, state.rsakey);
 								if (connected_payload.status==='success') {
 									request.decoded=JSON.parse(connected_payload.plaintext);
@@ -87,7 +95,7 @@ const OnMessagePlugin = store => {
 							break;
 						}
 						case "MESSAGE": {
-							if ((request.hasOwnProperty('code')) && (request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
+							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
 								var message_payload=Cryptico.decrypt(request.payload, state.rsakey);
 								if (message_payload.status==='success') {
 									request.decoded=JSON.parse(message_payload.plaintext);
@@ -105,7 +113,7 @@ const OnMessagePlugin = store => {
 							break;
 						}
 						default: {
-							console.log("Unknown Request Code");
+							console.log("Unknown Request Code "+request.code);
 						}
 					}
 				}
@@ -143,6 +151,17 @@ export default new Vuex.Store({
 	mutations: {
 		BASE_URL (state, url) {
 			state.baseUrl=url;
+		},
+		ON_CLOSE (state, request) {
+			console.log("ON_CLOSE:"+state.connection.status);
+			state.connection.status=STATUS.NONE
+			Vue.prototype.$disconnect();
+			state.connection.channelid="";
+			state.connection.peerkey="";
+			state.info.login="";
+			state.info.password="";
+			state.info.message="";
+			state.request="";
 		},
 		ON_MYPROTO_LISTEN_ACK (state, request) {
 			console.log("ON_MYPROTO_LISTEN_ACK STATUS:"+state.connection.status);
@@ -206,6 +225,7 @@ export default new Vuex.Store({
 		},
 		SWITCH_TO_CONNECT(state, params) {
 			console.log("SWITCH_TO_CONNECT : "+params.channelid+" key: "+params.key);
+			Vue.prototype.$connect();
 			state.connection.channelid=params.channelid;
 			state.connection.peerkey=params.key;//.replace(/ /g, "+");
 			var handshake= {
@@ -221,6 +241,7 @@ export default new Vuex.Store({
 			}
 		},
 		LISTEN(state) {
+			Vue.prototype.$connect();
 			state.connection.status=STATUS.LISTEN;
 			var request={
 				code: 'LISTEN'
@@ -234,19 +255,6 @@ export default new Vuex.Store({
 				console.log("Not connected yet");
 			}
 		},
-		/*INITIATE_CONNECT(state) {
-			state.connection.status=STATUS.CONNECT;
-			var handshake= {
-				channel: state.connection.channelid,
-				key: Cryptico.publicKeyString(state.rsakey)
-			}
-			var result=Cryptico.encrypt(JSON.stringify(handshake), state.connection.peerkey, state.rsakey);
-			if (result.status==="success") {
-				sendMessage(Vue.prototype.$socket, state, result.cipher, 'CONNECT');
-			} else {
-				console.log("Failed to encode handshake");
-			}
-		},*/
 		SOCKET_ONOPEN (state, event)  {
 			console.log("Socket open")
 			Vue.prototype.$socket = event.currentTarget
@@ -274,7 +282,7 @@ export default new Vuex.Store({
 		SOCKET_RECONNECT_ERROR(state) {
 			console.log("Socket reconnect error")
 			state.socket.reconnectError = true;
-		},
+		}
 	},
 	actions: {
 		SEND_MESSAGE (context, message) {
@@ -299,6 +307,9 @@ export default new Vuex.Store({
 	getters: {
 		listen_success: (state) =>() =>{
 			return (state.connection.status==STATUS.LISTEN_SUCCESS);
+		},
+		none: (state) =>() =>{
+			return (state.connection.status==STATUS.NONE);
 		},
 		connected: (state) =>() =>{
 			return (state.connection.status==STATUS.CONNECTED);

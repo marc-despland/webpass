@@ -3,6 +3,7 @@
 		<v-app>
 			<Connecter v-if="connected"/>
 			<Listener v-if="listen"/>
+			<StartScreen v-if="none"/>
 		</v-app>
 	</div>
 </template>
@@ -21,6 +22,7 @@
 
 import Connecter from './views/Connecter.vue'
 import Listener from './views/Listener.vue'
+import StartScreen from './views/StartScreen.vue'
 
 
 /*
@@ -35,7 +37,8 @@ console.log(decodeURIComponent('abc%3D%3D%2B%2F'));
 export default {
 	components: {
 		Connecter,
-		Listener
+		Listener,
+		StartScreen
 	},
 	created() {
 		console.log("Hash : "+JSON.stringify(this.$route.hash));
@@ -62,17 +65,9 @@ export default {
 					channelid: channel,
 					key: key
 				}
-				/*this.$store.commit('SWITCH_TO_CONNECT',params);
-				this.$store.commit('INITIATE_CONNECT');*/
 				this.$store.dispatch('CONNECT',options);
-			} else {
-				//this.$router.push("/listen");
-				this.$store.dispatch('LISTEN');
-			}
-		} else {
-			//this.$router.push("/listen");
-			this.$store.dispatch('LISTEN');
-		}
+			} 
+		} 
 	},
 	computed: {
 		connected() {
@@ -80,6 +75,9 @@ export default {
 		},
 		listen() {
 			return (this.$store.getters.listen());
+		},
+		none() {
+			return (this.$store.getters.none());
 		}
 	}
 }

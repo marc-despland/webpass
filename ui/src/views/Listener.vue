@@ -1,8 +1,7 @@
 <template>
 	<div class="home">
-		<p>LISTEN</p>
 		<div v-if="listen_success">
-			<p>Commponent is Listening for connection ...</p>
+			<p>Listening for connection {{channelid}} ...</p>
 			<p><center><a :href="connect_url"><VueQRCodeComponent :text="connect_url" color="#000000" bg-color="#FFFFFF" /></a></center></p>
 		</div>
 		<div v-else>
@@ -21,14 +20,14 @@ export default {
 		VueQRCodeComponent
 	},
 	computed: {
+		channelid() {
+			return (this.$store.getters.channelid());
+		},
 		listen_success() {
 			return (this.$store.getters.listen_success());
 		},
 		connected() {
 			return (this.$store.getters.connected());
-		},
-		channelid() {
-			return (this.$store.getters.channelid());
 		},
 		publickey() {
 			return (this.$store.getters.publickey());

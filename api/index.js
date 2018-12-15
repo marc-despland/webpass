@@ -232,14 +232,16 @@ wss.on('connection', function connection(ws) {
 						console.log("	Channel "+key);
 						var response={};
 						response.code="CLOSE";
+						response.channel=key;
 						response.message="Remote Peer close the connection";
-						channel.connectied.send(JSON.stringify(response));
+						channel.connected.send(JSON.stringify(response));
 						channel.connected.close();
 						delete channels[key];
 					} else if (channel.connected===ws) {
 						console.log("	Channel "+key);
 						var response={};
 						response.code="CLOSE";
+						response.channel=key;
 						response.message="Remote Peer close the connection";
 						channel.listen.send(JSON.stringify(response));
 						channel.listen.close();
