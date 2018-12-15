@@ -3,6 +3,7 @@
 		<v-container fluid grid-list-xs>
 			<v-layout row wrap >
 				<v-flex d-flex xs12><v-text-field v-model="channel" label="Channel" required></v-text-field></v-flex>
+				<v-flex d-flex xs12><v-text-field v-model="challenge" label="Challenge" required></v-text-field></v-flex>
 				<v-flex d-flex xs12><v-btn color="success" @click="join()">Join</v-btn></v-flex>
 			</v-layout>
 		</v-container>
@@ -21,12 +22,17 @@ export default {
 	},
 	data() {
 		return {
-			channel: ""
+			channel: "",
+			challenge: ""
 		};
 	},
 	methods: {
 		join() {
-			this.$store.dispatch('JOIN_REQUEST', this.channel);
+			var options= {
+				channel: this.channel,
+				challenge: this.challenge
+			}
+			this.$store.dispatch('JOIN_REQUEST', options);
 		}
 
 	},

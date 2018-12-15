@@ -63,6 +63,7 @@ export default {
 		if (this.$route.hash!=="") {
 			var channel="";
 			var key="";
+			var challenge="";
 			var hash=location.hash.substring(1);
 			var params=hash.split("&");
 			for (var i=0;i<params.length; i++) {
@@ -70,15 +71,16 @@ export default {
 				if (param.length==2) {
 					if (param[0]==="channel") channel=param[1];
 					if (param[0]==="key") key=decodeURIComponent(param[1]);
+					if (param[0]==="challenge") challenge=param[1];
 				}
 			}
 			//if ((this.$route.query.hasOwnProperty('channel')) && (this.$route.query.hasOwnProperty('key'))) {
-			console.log("channel = "+ channel+"  key = "+key);
-			if ((channel!=="") && (key!=="")) {
+			if ((channel!=="") && (key!=="") && (challenge!=="")) {
 				//we are in CONNECT MODE
 				var options= {
 					channelid: channel,
-					key: key
+					key: key,
+					challenge: challenge
 				}
 				this.$store.dispatch('CONNECT',options);
 			} 

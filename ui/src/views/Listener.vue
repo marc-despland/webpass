@@ -1,8 +1,14 @@
 <template>
 	<div class="home">
 		<div v-if="listen_success">
-			<p>Listening for connection {{channelid}} ...</p>
-			<p><center><a :href="connect_url"><VueQRCodeComponent :text="connect_url" color="#000000" bg-color="#FFFFFF" /></a></center></p>
+			<v-container fluid grid-list-xs>
+				<v-layout row wrap >
+					<v-flex d-flex xs12><center>Listening for connection</center></v-flex>
+					<v-flex d-flex xs12><center>Channel {{channelid}}</center></v-flex>
+					<v-flex d-flex xs12><center>Challenge {{challenge}}</center></v-flex>
+					<v-flex d-flex xs12><center><a :href="connect_url"><VueQRCodeComponent :text="connect_url" color="#000000" bg-color="#FFFFFF" /></a></center></v-flex>
+				</v-layout>
+			</v-container>
 		</div>
 		<div v-else>
 			<p>Wait initialization</p>
@@ -36,8 +42,12 @@ export default {
 			return (this.$store.getters.peerkey());
 		},
 		connect_url() {
-			return this.$store.getters.baseUrl()+"?#channel="+this.$store.getters.channelid()+"&key="+encodeURIComponent(this.$store.getters.publickey());
+			return this.$store.getters.baseUrl()+"?#channel="+this.$store.getters.channelid()+"&challenge="+this.$store.getters.challenge()+"&key="+encodeURIComponent(this.$store.getters.publickey());
+		},
+		challenge() {
+			return (this.$store.getters.challenge());
 		}
+
 	},
 	mounted() {
 		console.log("Listener mounted")

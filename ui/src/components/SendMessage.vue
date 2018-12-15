@@ -3,7 +3,7 @@
 		<v-layout row wrap >
 			<v-flex d-flex xs12><v-text-field v-model="login" label="Login" required></v-text-field></v-flex>
 			<v-flex d-flex xs12><v-text-field v-model="password" label="Password" type="password" required></v-text-field></v-flex>
-			<v-flex d-flex xs12><v-textarea name="message"  v-model="message" label="Message" required></v-textarea></v-flex>
+			<v-flex d-flex xs12><v-textarea name="message" type="password" v-model="message" label="Message" required></v-textarea></v-flex>
 			<v-flex d-flex xs12><v-btn color="info" @click="send()">Send to peer</v-btn></v-flex>
 		</v-layout>
 	</v-container>

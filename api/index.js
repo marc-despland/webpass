@@ -71,6 +71,8 @@ wss.on('connection', function connection(ws) {
 							response.code="CONNECT";
 							response.channel=action.channel;
 							response.payload=action.payload;
+							response.challenge=action.challenge;
+							response.mychallenge=action.mychallenge;
 							channels[action.channel].listen.send(JSON.stringify(response));
 						} else {
 							var response={};
@@ -91,6 +93,7 @@ wss.on('connection', function connection(ws) {
 							response.code="JOIN";
 							response.channel=action.channel;
 							response.key=action.key;
+							response.challenge=action.challenge;
 							channel.listen.send(JSON.stringify(response));
 						}
 					}
