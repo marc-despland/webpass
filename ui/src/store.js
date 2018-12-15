@@ -1,11 +1,13 @@
 /* eslint-disable  no-console*/
 /* eslint-disable  no-unused-vars*/
-
+'use strict';
 import Vue from 'vue'
 import Vuex from 'vuex'
 import Cryptico from 'cryptico'
 
-var STATUS= Object.freeze({NONE:0, LISTEN: 1, CONNECT: 2, CONNECTED: 3, LISTEN_SUCCESS: 4, LISTEN_FAILED: 5});
+import STATUS from './connection_status'
+
+//var STATUS= Object.freeze({NONE:0, LISTEN: 1, CONNECT: 2, CONNECTED: 3, LISTEN_SUCCESS: 4, LISTEN_FAILED: 5, JOIN: 6, JOIN_CHALLENGED: 7, JOIN_REQUEST: 8, JOIN_RECEIVED: 9, JOIN_CHALLENGE_RECEIVED: 10});
 
 Vue.use(Vuex)
 
@@ -30,6 +32,7 @@ function sendMessage(ws, state, payload, code) {
 const OnMessagePlugin = store => {
 	// called when the store is initialized
 	store.subscribe((mutation, state) => {
+		var payload;
 		if (mutation.type=="SOCKET_ONMESSAGE") {
 			console.log("SOCKET_ONMESSAGE ");
 			var data=mutation.payload.data;
@@ -59,9 +62,9 @@ const OnMessagePlugin = store => {
 						}
 						case "CONNECTED": {
 							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
-								var connect_payload=Cryptico.decrypt(request.payload, state.rsakey);
-								if (connect_payload.status==='success') {
-									request.decoded=JSON.parse(connect_payload.plaintext);
+								payload=Cryptico.decrypt(request.payload, state.rsakey);
+								if (payload.status==='success') {
+									request.decoded=JSON.parse(payload.plaintext);
 									if ((request.decoded!==undefined) && (request.decoded.hasOwnProperty('channel'))) {
 										if ((request.channel==request.decoded.channel) && (request.channel==state.connection.channelid)) {
 											store.commit("ON_MYPROTO_CONNECTED", request);
@@ -78,9 +81,9 @@ const OnMessagePlugin = store => {
 						case "CONNECT": {
 							console.log("CONNECT : "+JSON.stringify(request));
 							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
-								var connected_payload=Cryptico.decrypt(request.payload, state.rsakey);
-								if (connected_payload.status==='success') {
-									request.decoded=JSON.parse(connected_payload.plaintext);
+								payload=Cryptico.decrypt(request.payload, state.rsakey);
+								if (payload.status==='success') {
+									request.decoded=JSON.parse(payload.plaintext);
 									if ((request.decoded!==undefined) && (request.decoded.hasOwnProperty('channel')) && (request.decoded.hasOwnProperty('key'))) {
 										if ((request.channel==request.decoded.channel) && (request.channel==state.connection.channelid)) {
 											store.commit("ON_MYPROTO_CONNECT", request);
@@ -94,11 +97,62 @@ const OnMessagePlugin = store => {
 							}
 							break;
 						}
+						case "JOIN": {
+							console.log("JOIN : "+JSON.stringify(request));
+							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('key'))) {
+								if (request.channel==state.connection.channelid) {
+									store.commit("ON_MYPROTO_JOIN", request);
+								} else {
+									store.commit("ON_CLOSE");
+								}
+							} else {
+								store.commit("ON_CLOSE");
+							}
+							break;
+						}
+						case "JOIN_CHALLENGE": {
+							console.log("JOIN_CHALLENGE : "+JSON.stringify(request));
+							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
+								payload=Cryptico.decrypt(request.payload, state.rsakey);
+								if (payload.status==='success') {
+									request.decoded=JSON.parse(payload.plaintext);
+									if ((request.decoded!==undefined) && (request.decoded.hasOwnProperty('channel')) && (request.decoded.hasOwnProperty('key')) && (request.decoded.hasOwnProperty('challenge'))) {
+										if ((request.channel==request.decoded.channel) && (request.channel==state.connection.channelid) && (state.join.challenge==request.decoded.challenge)) {
+											store.commit("ON_MYPROTO_JOIN_CHALLENGE", request);
+										} else {
+											store.commit("ON_CLOSE");
+										}
+									} else {
+										store.commit("ON_CLOSE");
+									}
+								}
+							}
+							break;
+						}
+						case "JOIN_SUCCESS": {
+							console.log("JOIN_SUCCESS : "+JSON.stringify(request));
+							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
+								payload=Cryptico.decrypt(request.payload, state.rsakey);
+								if (payload.status==='success') {
+									request.decoded=JSON.parse(payload.plaintext);
+									if ((request.decoded!==undefined) && (request.decoded.hasOwnProperty('channel')) && (request.decoded.hasOwnProperty('challenge'))) {
+										if ((request.channel==request.decoded.channel) && (request.channel==state.connection.channelid) && (state.join.challenge==request.decoded.challenge)) {
+											store.commit("ON_MYPROTO_JOIN_SUCCESS", request);
+										} else {
+											store.commit("ON_CLOSE");
+										}
+									} else {
+										store.commit("ON_CLOSE");
+									}
+								}
+							}
+							break;
+						}
 						case "MESSAGE": {
 							if ((request.hasOwnProperty('channel')) && (request.hasOwnProperty('payload'))) {
-								var message_payload=Cryptico.decrypt(request.payload, state.rsakey);
-								if (message_payload.status==='success') {
-									request.decoded=JSON.parse(message_payload.plaintext);
+								payload=Cryptico.decrypt(request.payload, state.rsakey);
+								if (payload.status==='success') {
+									request.decoded=JSON.parse(payload.plaintext);
 									if ((request.decoded!==undefined) && (request.decoded.hasOwnProperty('channel')) && (request.decoded.hasOwnProperty('login')) && (request.decoded.hasOwnProperty('password')) && (request.decoded.hasOwnProperty('message'))) {
 										if ((request.channel==request.decoded.channel) && (request.channel==state.connection.channelid)) {
 											store.commit("ON_MYPROTO_MESSAGE", request);
@@ -122,7 +176,35 @@ const OnMessagePlugin = store => {
 	});
 }
 
+/*
+JOIN SEQUENCE
+@startuml
+Connect -> Listen: JOIN(channelid, pubkey)
+Listen --> Connect: JOIN_CHALLENGE(pubkey, challenge)
+Connect -> Listen: JOIN_SUCCESS(challenge)
+@enduml
 
+
+State On Connect Side :
+@startuml
+[*] --> NONE
+NONE --> JOIN : Click to choose join
+JOIN --> JOIN_REQUESTED : send JOIN request
+JOIN_REQUESTED --> JOIN_CHALLENGE_RECEIVED : received JOIN_CHALLENGE
+JOIN_CHALLENGE_RECEIVED --> CONNECTED : send JOIN_SUCCESS
+CONNECTED --> [*]
+@enduml
+
+
+State On Listen Side :
+@startuml
+[*] --> LISTEN
+LISTEN --> JOIN_RECEIVED : received JOIN
+JOIN_RECEIVED --> JOIN_CHALLENGED : send JOIN_CHALLENGE
+JOIN_CHALLENGED --> CONNECTED : received JOIN_SUCCESS
+CONNECTED --> [*]
+@enduml
+*/
 
 
 
@@ -130,6 +212,10 @@ export default new Vuex.Store({
 	state: {
 		request: '',
 		rsakey: {},
+		join: {
+			challenge: 0,
+			peerchallenge: 0
+		},
 		connection: {
 			channelid: 0,
 			peerkey: '',
@@ -163,11 +249,31 @@ export default new Vuex.Store({
 			state.info.message="";
 			state.request="";
 		},
+		ON_MYPROTO_JOIN(state, request) {
+			console.log("ON_MYPROTO_JOIN STATUS:"+state.connection.status);
+			if (state.connection.status==STATUS.LISTEN_SUCCESS) {
+				state.connection.peerkey=request.key;
+				state.join.challenge=Math.floor((Math.random() * 10000) + 1);
+				state.connection.status=STATUS.JOIN_RECEIVED;
+			}
+		},
+		ON_MYPROTO_JOIN_CHALLENGE (state, request) {
+			console.log("ON_MYPROTO_JOIN_CHALLENGE STATUS:"+state.connection.status);
+			if (state.connection.status==STATUS.JOIN_REQUESTED) {
+				state.connection.peerkey=request.decoded.key;
+				state.connection.status=STATUS.JOIN_CHALLENGE_RECEIVED;
+			}
+		},
+		ON_MYPROTO_JOIN_SUCCESS (state, request) {
+			console.log("ON_MYPROTO_JOIN_SUCCESS STATUS:"+state.connection.status);
+			if (state.connection.status==STATUS.JOIN_CHALLENGED) {
+				state.connection.status=STATUS.CONNECTED;
+			}
+		},
 		ON_MYPROTO_LISTEN_ACK (state, request) {
 			console.log("ON_MYPROTO_LISTEN_ACK STATUS:"+state.connection.status);
 			if (state.connection.status==STATUS.LISTEN) {
 				state.connection.channelid=request.channel;
-				state.connection.initiator=true;
 				state.connection.status=STATUS.LISTEN_SUCCESS;
 				console.log("Change status to LISTEN_SUCCESS");
 			}
@@ -225,34 +331,101 @@ export default new Vuex.Store({
 		},
 		SWITCH_TO_CONNECT(state, params) {
 			console.log("SWITCH_TO_CONNECT : "+params.channelid+" key: "+params.key);
-			Vue.prototype.$connect();
-			state.connection.channelid=params.channelid;
-			state.connection.peerkey=params.key;//.replace(/ /g, "+");
-			var handshake= {
-				channel: state.connection.channelid,
-				key: Cryptico.publicKeyString(state.rsakey)
-			}
-			var result=Cryptico.encrypt(JSON.stringify(handshake), state.connection.peerkey, state.rsakey);
-			if (result.status==="success") {
-				state.connection.status=STATUS.CONNECT;
-				sendMessage(Vue.prototype.$socket, state, result.cipher, 'CONNECT');
-			} else {
-				console.log("Failed to encode handshake");
+			if (state.connection.status==STATUS.NONE) {
+				Vue.prototype.$connect();
+				state.connection.channelid=params.channelid;
+				state.connection.peerkey=params.key;//.replace(/ /g, "+");
+				var handshake= {
+					channel: state.connection.channelid,
+					key: Cryptico.publicKeyString(state.rsakey)
+				}
+				var result=Cryptico.encrypt(JSON.stringify(handshake), state.connection.peerkey, state.rsakey);
+				if (result.status==="success") {
+					state.connection.status=STATUS.CONNECT;
+					sendMessage(Vue.prototype.$socket, state, result.cipher, 'CONNECT');
+				} else {
+					console.log("Failed to encode handshake");
+				}
 			}
 		},
 		LISTEN(state) {
-			Vue.prototype.$connect();
-			state.connection.status=STATUS.LISTEN;
-			var request={
-				code: 'LISTEN'
+			console.log("LISTEN STATUS:"+state.connection.status);
+			if (state.connection.status==STATUS.NONE) {
+				Vue.prototype.$connect();
+				state.connection.status=STATUS.LISTEN;
+				var request={
+					code: 'LISTEN'
+				}
+				state.request=JSON.stringify(request);
+				if (state.socket.isConnected) {
+					console.log("INITIATE LISTEN STATUS");
+					Vue.prototype.$socket.send(state.request);
+					state.request='';
+				} else {
+					console.log("Not connected yet");
+				}
 			}
-			state.request=JSON.stringify(request);
-			if (state.socket.isConnected) {
-				console.log("INITIATE LISTEN STATUS");
-				Vue.prototype.$socket.send(state.request);
-				state.request='';
-			} else {
-				console.log("Not connected yet");
+		},
+		JOIN_REQUEST (state, channel) {
+			console.log("JOIN REQUEST:"+state.connection.status);
+			if (state.connection.status==STATUS.JOIN) {
+				state.connection.status=STATUS.JOIN_REQUESTED;
+				state.connection.channelid=channel;
+				var request={
+					code: 'JOIN',
+					channel: channel,
+					key: Cryptico.publicKeyString(state.rsakey)
+				}
+				state.request=JSON.stringify(request);
+				if (state.socket.isConnected) {
+					Vue.prototype.$socket.send(state.request);
+					state.request='';
+				} else {
+					console.log("Not connected yet");
+				}
+			}
+		},
+		JOIN (state) {
+			console.log("JOIN STATUS:"+state.connection.status);
+			if (state.connection.status==STATUS.NONE) {
+				Vue.prototype.$connect();
+				state.connection.status=STATUS.JOIN;
+				state.join.challenge=Math.floor((Math.random() * 10000) + 1);
+			}
+		},
+		JOIN_SUCCESS (state, challenge) {
+			console.log("JOIN_CHALLENGE STATUS:"+state.connection.status);
+			if (state.connection.status==STATUS.JOIN_CHALLENGE_RECEIVED) {
+				state.join.peerchallenge=challenge;
+				var handshake={
+					channel: state.connection.channelid,
+					challenge: challenge
+				}
+				var result=Cryptico.encrypt(JSON.stringify(handshake), state.connection.peerkey, state.rsakey);
+				if (result.status==="success") {
+					state.connection.status=STATUS.CONNECTED;
+					sendMessage(Vue.prototype.$socket, state, result.cipher, 'JOIN_SUCCESS');
+				} else {
+					console.log("Failed to encode handshake");
+				}
+			}
+		},
+		JOIN_CHALLENGE (state, challenge) {
+			console.log("JOIN_CHALLENGE STATUS:"+state.connection.status);
+			if (state.connection.status==STATUS.JOIN_RECEIVED) {
+				state.join.peerchallenge=challenge;
+				var handshake={
+					channel: state.connection.channelid,
+					challenge: challenge,
+					key: Cryptico.publicKeyString(state.rsakey)
+				}
+				var result=Cryptico.encrypt(JSON.stringify(handshake), state.connection.peerkey, state.rsakey);
+				if (result.status==="success") {
+					state.connection.status=STATUS.JOIN_CHALLENGED;
+					sendMessage(Vue.prototype.$socket, state, result.cipher, 'JOIN_CHALLENGE');
+				} else {
+					console.log("Failed to encode handshake");
+				}
 			}
 		},
 		SOCKET_ONOPEN (state, event)  {
@@ -297,6 +470,30 @@ export default new Vuex.Store({
 				resolve();
 			})
 		},
+		JOIN (context) {
+			return new Promise((resolve, reject) => {
+				context.commit('JOIN');
+				resolve();
+			})
+		},
+		JOIN_REQUEST (context, channel) {
+			return new Promise((resolve, reject) => {
+				context.commit('JOIN_REQUEST',channel);
+				resolve();
+			})
+		},
+		JOIN_SUCCESS (context, challenge) {
+			return new Promise((resolve, reject) => {
+				context.commit('JOIN_SUCCESS',challenge);
+				resolve();
+			})
+		},
+		JOIN_CHALLENGE (context, challenge) {
+			return new Promise((resolve, reject) => {
+				context.commit('JOIN_CHALLENGE',challenge);
+				resolve();
+			})
+		},
 		LISTEN (context) {
 			return new Promise((resolve, reject) => {
 				context.commit('LISTEN');
@@ -305,8 +502,17 @@ export default new Vuex.Store({
 		}
 	},
 	getters: {
+		challenge: (state) =>() =>{
+			return (state.join.challenge);
+		},
+		status: (state) =>() =>{
+			return (state.connection.status);
+		},
 		listen_success: (state) =>() =>{
 			return (state.connection.status==STATUS.LISTEN_SUCCESS);
+		},
+		join_challenge: (state) =>() =>{
+			return (state.connection.status==STATUS.JOIN_CHALLENGE);
 		},
 		none: (state) =>() =>{
 			return (state.connection.status==STATUS.NONE);

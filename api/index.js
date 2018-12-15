@@ -80,7 +80,7 @@ wss.on('connection', function connection(ws) {
 						}
 					}
 					break;
-				case "JOIN_REQUEST" :
+				case "JOIN" :
 					//Send by the connect PEER to connect to the listen one
 					if (action.hasOwnProperty('channel') && channels.hasOwnProperty(action.channel)) {
 						console.log("	Channel "+action.channel);
@@ -88,10 +88,10 @@ wss.on('connection', function connection(ws) {
 						if ((channel!==undefined) && action.hasOwnProperty('key')) {
 							channels[action.channel].connected=ws;
 							var response={};
-							response.code="JOIN_REQUEST";
+							response.code="JOIN";
 							response.channel=action.channel;
 							response.key=action.key;
-							channels.listen.send(JSON.stringify(response));
+							channel.listen.send(JSON.stringify(response));
 						}
 					}
 					break;
@@ -234,8 +234,10 @@ wss.on('connection', function connection(ws) {
 						response.code="CLOSE";
 						response.channel=key;
 						response.message="Remote Peer close the connection";
-						channel.connected.send(JSON.stringify(response));
-						channel.connected.close();
+						if (channel.connected !== undefined) {
+							channel.connected.send(JSON.stringify(response));
+							channel.connected.close();
+						}
 						delete channels[key];
 					} else if (channel.connected===ws) {
 						console.log("	Channel "+key);

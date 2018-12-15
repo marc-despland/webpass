@@ -4,6 +4,11 @@
 			<Connecter v-if="connected"/>
 			<Listener v-if="listen"/>
 			<StartScreen v-if="none"/>
+			<JoinRequest v-if="join"/>
+			<JoinReceived v-if="joinReceived"/>
+			<JoinRequested v-if="joinRequested"/>
+			<JoinChallenged v-if="joinChallenged"/>
+			<JoinChallengeReceived v-if="joinChallengeReceived"/>
 		</v-app>
 	</div>
 </template>
@@ -23,7 +28,12 @@
 import Connecter from './views/Connecter.vue'
 import Listener from './views/Listener.vue'
 import StartScreen from './views/StartScreen.vue'
-
+import JoinRequest from './views/JoinRequest.vue'
+import JoinRequested from './views/JoinRequested.vue'
+import JoinReceived from './views/JoinReceived.vue'
+import JoinChallenged from './views/JoinChallenged.vue'
+import JoinChallengeReceived from './views/JoinChallengeReceived.vue'
+import STATUS from './connection_status'
 
 /*
 // encodes characters such as ?,=,/,&,:
@@ -38,7 +48,12 @@ export default {
 	components: {
 		Connecter,
 		Listener,
-		StartScreen
+		StartScreen,
+		JoinRequest,
+		JoinRequested,
+		JoinReceived,
+		JoinChallenged,
+		JoinChallengeReceived
 	},
 	created() {
 		console.log("Hash : "+JSON.stringify(this.$route.hash));
@@ -71,13 +86,28 @@ export default {
 	},
 	computed: {
 		connected() {
-			return (this.$store.getters.connected());
+			return (this.$store.getters.status()==STATUS.CONNECTED);
 		},
 		listen() {
-			return (this.$store.getters.listen());
+			return ((this.$store.getters.status()==STATUS.LISTEN_SUCCESS) || (this.$store.getters.status()==STATUS.LISTEN));
 		},
 		none() {
-			return (this.$store.getters.none());
+			return (this.$store.getters.status()==STATUS.NONE);
+		},
+		join() {
+			return (this.$store.getters.status()==STATUS.JOIN);
+		},
+		joinReceived() {
+			return (this.$store.getters.status()==STATUS.JOIN_RECEIVED);
+		},
+		joinRequested() {
+			return (this.$store.getters.status()==STATUS.JOIN_REQUESTED);
+		},
+		joinChallenged() {
+			return (this.$store.getters.status()==STATUS.JOIN_CHALLENGED);
+		},
+		joinChallengeReceived() {
+			return (this.$store.getters.status()==STATUS.JOIN_CHALLENGE_RECEIVED);
 		}
 	}
 }
