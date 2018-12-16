@@ -1,9 +1,45 @@
 <template>
-	<div>
-		<ReceivedMessage/>
-		<SendMessage/>
+	<div class="home">
+		<v-layout>
+			<v-flex xs12 sm6 offset-sm3>
+				<v-card color="light-blue lighten-4">
+					<v-card-title primary-title class="cardtitle">
+						<span>Connected</span>
+					</v-card-title>
+					<div>
+						<ReceivedMessage/>
+						<SendMessage/>
+					</div>
+				</v-card>
+			</v-flex>
+		</v-layout>
 	</div>
 </template>
+<style>
+.cardtitle {
+	text-align: center;
+	font-weight: bold;
+	font-size: 30px;
+	background-color: #0D47A1;
+	color: #FFFFFF;
+}
+.button { 
+	font-weight: bold;
+}
+.challenge {
+	text-align: center;
+	font-weight: bold;
+	font-size: 60px;
+}
+.title {
+	text-align: center;
+	font-weight: bold;
+	font-size: 30px;
+}
+.home {
+	margin-top: 20px;
+}
+</style>
 
 <script>
 import ReceivedMessage from '../components/ReceivedMessage';
