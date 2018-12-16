@@ -7,8 +7,6 @@
 			<JoinRequest v-if="join"/>
 			<JoinReceived v-if="joinReceived"/>
 			<JoinRequested v-if="joinRequested"/>
-			<JoinChallenged v-if="joinChallenged"/>
-			<JoinChallengeReceived v-if="joinChallengeReceived"/>
 		</v-app>
 	</div>
 </template>
@@ -31,18 +29,8 @@ import StartScreen from './views/StartScreen.vue'
 import JoinRequest from './views/JoinRequest.vue'
 import JoinRequested from './views/JoinRequested.vue'
 import JoinReceived from './views/JoinReceived.vue'
-import JoinChallenged from './views/JoinChallenged.vue'
-import JoinChallengeReceived from './views/JoinChallengeReceived.vue'
 import STATUS from './connection_status'
 
-/*
-// encodes characters such as ?,=,/,&,:
-console.log(encodeURIComponent('abc==+/'));
-// expected output: "%3Fx%3D%D1%88%D0%B5%D0%BB%D0%BB%D1%8B"
-
-console.log(decodeURIComponent('abc%3D%3D%2B%2F'));
-// expected output: "%3Fx%3Dtest"
-*/
 
 export default {
 	components: {
@@ -52,8 +40,6 @@ export default {
 		JoinRequest,
 		JoinRequested,
 		JoinReceived,
-		JoinChallenged,
-		JoinChallengeReceived
 	},
 	created() {
 		console.log("Hash : "+JSON.stringify(this.$route.hash));

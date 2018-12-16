@@ -1,16 +1,19 @@
 <template>
 	<v-container fluid grid-list-xs>
 		<v-layout row wrap >
-			<v-flex d-flex xs12><v-text-field v-model="login" label="Login" required></v-text-field></v-flex>
+			<!--<v-flex d-flex xs12><v-text-field v-model="login" label="Login" required></v-text-field></v-flex>-->
 			<v-flex d-flex xs12><v-text-field v-model="password" label="Password" type="password" required></v-text-field></v-flex>
 			<v-flex d-flex xs12><v-textarea name="message" type="password" v-model="message" label="Message" required></v-textarea></v-flex>
-			<v-flex d-flex xs12><v-btn color="info" @click="send()">Send to peer</v-btn></v-flex>
+			<v-flex d-flex xs12><v-btn color="blue darken-4" class="white--text button" @click="send()">Send to peer</v-btn></v-flex>
 		</v-layout>
 	</v-container>
 </template>
 <style>
 .label {
 	text-align: left;
+	font-weight: bold;
+}
+.button { 
 	font-weight: bold;
 }
 </style>
