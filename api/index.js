@@ -37,6 +37,15 @@ let wss = new WebSocketServer({
 });
 http.on('request', app);
 
+function generateChannel(digit) {
+	var challenge="";
+	for (var i=0; i< digit; i++) {
+		var code=Math.floor((Math.random() * 10));
+		challenge+=code;
+	}
+	return challenge;
+}
+
 wss.on('connection', function connection(ws) {
 	console.log('CONNECTION !!!');
 	ws.on('message', function incoming(message) {
@@ -46,9 +55,9 @@ wss.on('connection', function connection(ws) {
 			switch (action.code) {
 				case "LISTEN" :
 					//generate a channel id 
-					var channel=Math.floor((Math.random() * 10000000) + 1);
+					var channel=generateChannel(5);
 					while (channels.hasOwnProperty(channel)) {
-						channel=Math.floor((Math.random() * 10000000) + 1);
+						channel=generateChannel(5);
 					}
 					console.log("	Creating Channel "+channel);
 					channels[channel]={
